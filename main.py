@@ -1,30 +1,46 @@
-import os,league_client.shortcuts
-os.system("title League Of Legends Automatic Login  ^|  t.me/violanesfan")
-accounts={}
+import os
+os.makedirs("logs", exist_ok=True)
+os.system("type nul > logs\\cześć.txt")
+import time
+import logging
+import league_client.shortcuts
+
+os.system("title League Of Legends Auto Login  ^|  t.me/violanesfan")
+
+accounts = {}
 user = os.environ['USERPROFILE'][9:]
-n=0
 riot_exe = 'C:\\Riot Games\\Riot Client\\RiotClientServices.exe'
 league_lockfile = 'C:\\Riot Games\\League of Legends\\lockfile'
-riot_lockfile = 'C:\\Users\\'+user+'\\AppData\\Local\\Riot Games\\Riot Client\\Config\\lockfile'
-with open('accs.txt','r') as file:
+riot_lockfile = f'C:\\Users\\{user}\\AppData\\Local\\Riot Games\\Riot Client\\Config\\lockfile'
+
+with open('accs.txt', 'r') as file:
     for line in file:
-        login,password = line.strip().split(',')
+        login, password = line.strip().split(',')
         accounts[login] = password
+
 print("Select an account:")
-for login in accounts:
-    n+=1 
-    print("["+str(n)+"] "+login)
 logins = list(accounts.keys())
+
+for i, login in enumerate(logins, 1):
+    print(f"[{i}] {login}")
+
 while True:
     selected_acc = input("")
     try:
         selected_acc = int(selected_acc)
-        if selected_acc > n or selected_acc < 1:
-            continue
-        else:
+        if 1 <= selected_acc <= len(logins):
             break
-    except Exception:
-        continue
-login = logins[int(selected_acc) -1]
+    except ValueError:
+        pass
+
+login = logins[selected_acc - 1]
 password = accounts[login]
-league_client.shortcuts.login(login,password,riot_exe,riot_lockfile,league_lockfile)
+league_client.shortcuts.login(login, password, riot_exe, riot_lockfile, league_lockfile)
+
+print("Done, removing logs")
+
+for handler in league_client.shortcuts.logger.handlers:
+    if isinstance(handler, logging.handlers.RotatingFileHandler):
+        handler.close()
+        league_client.shortcuts.logger.removeHandler(handler)
+os.system("rmdir /s /q logs")
